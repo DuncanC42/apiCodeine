@@ -26,5 +26,15 @@ services:
         resource: '../src/Controller/'
         tags: ['controller.service_arguments']
 
+    # add api service definition
+    App\Security\ApiAuthenticator:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    security.authentication.provider.guard.api:
+        alias: App\Security\ApiAuthenticator
+
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
