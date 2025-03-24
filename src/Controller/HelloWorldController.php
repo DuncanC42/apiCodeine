@@ -26,4 +26,13 @@ class HelloWorldController extends AbstractController
     {
         return $this->json(['message' => 'Hello World']);
     }
+
+
+    /**
+     * @Route("/api/hello", name="api_hello_world", methods={"GET"})
+     */
+    public function apiTest(): JsonResponse
+    {
+        return $this->json(['bonjour' => 'Hello World']);
+    }
 }
