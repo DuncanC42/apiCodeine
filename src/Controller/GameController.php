@@ -5,21 +5,21 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Jeu;
+use App\Repository\JeuRepository;
 
 class GameController extends AbstractController
 {
     /**
      * @Route("/api/games", name="get_all_games", methods={"GET"})
      */
-    public function getAllGames(EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
+    public function getAllGames(JeuRepository $jeuRepository, SerializerInterface $serializer): JsonResponse
     {
         // Fetch all records from the Jeu entity
-        $jeux = $entityManager->getRepository(Jeu::class)->findAll();
+        $jeux = $jeuRepository->findAll();
 
         // Serialize the entities into JSON
         $jsonContent = $serializer->serialize($jeux, 'json');
@@ -31,7 +31,7 @@ class GameController extends AbstractController
     /**
      * @Route("/api/games", name="create_game", methods={"POST"})
      */
-    public function createGame(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function createGame(Request $request, JeuRepository $jeuRepository): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
@@ -45,8 +45,7 @@ class GameController extends AbstractController
         $jeu->setPhoto($data['photo']);
         $jeu->setTempsMax($data['temps_max']);
 
-        $entityManager->persist($jeu);
-        $entityManager->flush();
+        $jeuRepository->add($jeu, true);
 
         return new JsonResponse(['status' => 'Jeu créé!'], Response::HTTP_CREATED);
     }
@@ -54,11 +53,11 @@ class GameController extends AbstractController
     /**
      * @Route("/api/games/{id}", name="update_game", methods={"PUT"})
      */
-    public function updateGame(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function updateGame(int $id, Request $request, JeuRepository $jeuRepository): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        $jeu = $entityManager->getRepository(Jeu::class)->find($id);
+        $jeu = $jeuRepository->find($id);
 
         if (!$jeu) {
             return new JsonResponse(['status' => 'Jeu non trouvé!'], Response::HTTP_NOT_FOUND);
@@ -89,7 +88,7 @@ class GameController extends AbstractController
             $jeu->setTempsMax($data['temps_max']);
         }
 
-        $entityManager->flush();
+        $jeuRepository->add($jeu, true);
 
         return new JsonResponse(['status' => 'Jeu mis à jour!'], Response::HTTP_OK);
     }
@@ -97,16 +96,15 @@ class GameController extends AbstractController
     /**
      * @Route("/api/games/{id}", name="delete_game", methods={"DELETE"})
      */
-    public function deleteGame(int $id, EntityManagerInterface $entityManager): JsonResponse
+    public function deleteGame(int $id, JeuRepository $jeuRepository): JsonResponse
     {
-        $jeu = $entityManager->getRepository(Jeu::class)->find($id);
+        $jeu = $jeuRepository->find($id);
 
         if (!$jeu) {
             return new JsonResponse(['status' => 'Jeu non trouvé!'], Response::HTTP_NOT_FOUND);
         }
 
-        $entityManager->remove($jeu);
-        $entityManager->flush();
+        $jeuRepository->remove($jeu, true);
 
         return new JsonResponse(['status' => 'Jeu supprimé!'], Response::HTTP_OK);
     }
