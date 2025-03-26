@@ -18,19 +18,16 @@ security:
             pattern:  ^/api/login
             stateless: true
             anonymous: true
-            json_login:
-                check_path:               /api/login
-                username_path:            email
-                password_path:            pseudo
-                success_handler:          lexik_jwt_authentication.handler.authentication_success
-                failure_handler:          lexik_jwt_authentication.handler.authentication_failure
+            guard:
+                authenticators:
+                    - App\Security\JoueurAuthenticator
 
         api:
             pattern:   ^/api
             stateless: true
             guard:
                 authenticators:
-                    - App\Security\JoueurAuthenticator
+                    - lexik_jwt_authentication.jwt_token_authenticator
 
     access_control:
         - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
