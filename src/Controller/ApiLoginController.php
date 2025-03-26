@@ -20,6 +20,7 @@ class ApiLoginController extends AbstractController
      */
     public function login(Request $request)
     {
+        /*
         // Récupérer les données JSON
         $data = json_decode($request->getContent(), true);
 
@@ -41,5 +42,8 @@ class ApiLoginController extends AbstractController
             'message' => 'Login successful',
             'token' => $user->getApiToken()  // Assurez-vous que l'utilisateur a bien un token API
         ]);
+        */
+
+        return new JsonResponse(['message' => 'Échec de l\'authentification'], JsonResponse::HTTP_UNAUTHORIZED);
     }
 }

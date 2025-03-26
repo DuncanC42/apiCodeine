@@ -4,6 +4,7 @@ namespace App\Security;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,15 +17,18 @@ use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 class ApiAuthenticator extends AbstractGuardAuthenticator
 {
     private $entityManager;
+    private $jwtManager;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, JWTTokenManagerInterface $jwtManager)
     {
         $this->entityManager = $entityManager;
+        $this->jwtManager = $jwtManager;
     }
 
     public function supports(Request $request): bool
     {
-        return $request->headers->has('Authorization');
+        return strpos($request->getPathInfo(), '/api') === 0 
+            && $request->getPathInfo() !== '/api/login_check';
     }
 
     public function getCredentials(Request $request)
@@ -35,16 +39,28 @@ class ApiAuthenticator extends AbstractGuardAuthenticator
             return null;
         }
     
-        return $matches[1];
+        return [
+            'token' => str_replace('Bearer ', '', $authHeader)
+        ];
     }
 
     public function getUser($credentials, UserProviderInterface $userProvider): ?UserInterface
     {
-        if(null===$credentials){
+        if (null === $credentials || !isset($credentials['token'])) {
             return null;
         }
 
-        return $this->entityManager->getRepository(User::class)->findOneBy(['apiToken' => $credentials]);
+        try {
+            // Utiliser le JWTTokenManager pour décoder le token et obtenir l'identité
+            $payload = $this->jwtManager->parse($credentials['token']);
+            
+            // Récupération de l'utilisateur à partir de l'identifiant dans le payload
+            return $this->entityManager->getRepository(User::class)->findOneBy([
+                'pseudo' => $payload['username'] ?? null,
+            ]);
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function checkCredentials($credentials, UserInterface $user): bool
