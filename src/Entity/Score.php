@@ -38,6 +38,12 @@ class Score
      */
     private $jeu;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=joueur::class, inversedBy="scores")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $player;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -87,6 +93,18 @@ class Score
     public function setJeu(?jeu $jeu): self
     {
         $this->jeu = $jeu;
+
+        return $this;
+    }
+
+    public function getPlayer(): ?joueur
+    {
+        return $this->player;
+    }
+
+    public function setPlayer(?joueur $player): self
+    {
+        $this->player = $player;
 
         return $this;
     }
