@@ -31,10 +31,13 @@ services:
         autowire: true
         autoconfigure: true
         public: false
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
 
-    security.authentication.provider.guard.api:
-        alias: App\Security\ApiAuthenticator
-
+    App\Repository\UserRepository:
+        autowire: true
+        autoconfigure: true
+        public: false
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

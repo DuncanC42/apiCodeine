@@ -9,15 +9,21 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class HelloWorldController extends AbstractController
 {
+
+    /*
+
     /**
      * @Route("/hello/world", name="app_hello_world")
-     */
+
     public function index(): Response
     {
         return $this->render('hello_world/index.html.twig', [
             'controller_name' => 'HelloWorldController',
         ]);
     }
+
+    */
+
 
     /**
      * @Route("/api/hello", name="api_hello_world", methods={"GET"})
