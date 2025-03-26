@@ -10,20 +10,11 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class HelloWorldController extends AbstractController
 {
-    private $logger;
-
-    public function __construct(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
-    }
-
     /**
      * @Route("/hello/world", name="app_hello_world")
      */
     public function index(): Response
     {
-        $this->logger->info('HelloWorldController: index method called.');
-
         return new JsonResponse([
             'message' => 'Hello, World!',
         ]);
@@ -34,8 +25,6 @@ class HelloWorldController extends AbstractController
      */
     public function testToken(): Response
     {
-        $this->logger->info('HelloWorldController: index method called.');
-
         return new JsonResponse([
             'message' => 'Hello, World!',
         ]);

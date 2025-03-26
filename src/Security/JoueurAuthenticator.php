@@ -12,18 +12,14 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
-use Psr\Log\LoggerInterface;
 
 class JoueurAuthenticator extends AbstractGuardAuthenticator
 {
     private $entityManager;
-    private $logger;
 
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger)
+    public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
-        $this->logger = $logger;
-        $this->logger->info('JoueurAuthenticator: Constructed.');
     }
 
     public function supports(Request $request): bool
@@ -34,7 +30,6 @@ class JoueurAuthenticator extends AbstractGuardAuthenticator
     public function getCredentials(Request $request)
     {
         $data = json_decode($request->getContent(), true);
-        $this->logger->info('Received credentials: ' . json_encode($data));
         return [
             'email' => $data['email'] ?? null,
             'pseudo' => $data['pseudo'] ?? null,
@@ -47,11 +42,8 @@ class JoueurAuthenticator extends AbstractGuardAuthenticator
         $pseudo = $credentials['pseudo'];
 
         if (!$email || !$pseudo) {
-            $this->logger->warning('Both email and pseudo are required.');
             throw new AuthenticationException('Both email and pseudo are required.');
         }
-
-        $this->logger->info('Attempting to fetch user with email: ' . $email . ' and pseudo: ' . $pseudo);
 
         $user = $this->entityManager->getRepository(Joueur::class)->findOneBy([
             'email' => $email,
@@ -59,11 +51,8 @@ class JoueurAuthenticator extends AbstractGuardAuthenticator
         ]);
 
         if (!$user) {
-            $this->logger->warning('Invalid credentials for email: ' . $email . ' and pseudo: ' . $pseudo);
             throw new AuthenticationException('Invalid credentials.');
         }
-
-        $this->logger->info('User found: ' . $user->getEmail());
 
         return $user;
     }
