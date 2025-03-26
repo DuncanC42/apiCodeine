@@ -6,11 +6,12 @@ use App\Repository\JoueurRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @ORM\Entity(repositoryClass=JoueurRepository::class)
  */
-class Joueur
+class Joueur implements UserInterface
 {
     /**
      * @ORM\Id
@@ -50,7 +51,7 @@ class Joueur
     private $scores;
 
     /**
-     * @ORM\ManyToOne(targetEntity=leaderboard::class, inversedBy="joueurs")
+     * @ORM\ManyToOne(targetEntity=Leaderboard::class, inversedBy="joueurs")
      */
     private $leaderboard;
 
@@ -164,5 +165,31 @@ class Joueur
         $this->leaderboard = $leaderboard;
 
         return $this;
+    }
+
+    // UserInterface methods
+    public function getRoles(): array
+    {
+        return ['ROLE_USER'];
+    }
+
+    public function getPassword(): ?string
+    {
+        return null; // No password
+    }
+
+    public function getSalt(): ?string
+    {
+        return null;
+    }
+
+    public function eraseCredentials()
+    {
+        // No sensitive data to erase
+    }
+
+    public function getUsername(): string
+    {
+        return $this->email; // or $this->pseudo
     }
 }
