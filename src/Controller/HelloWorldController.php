@@ -14,8 +14,8 @@ class HelloWorldController extends AbstractController
      */
     public function index(): Response
     {
-        return $this->render('hello_world/index.html.twig', [
-            'controller_name' => 'HelloWorldController',
+        return new JsonResponse([
+            'message' => 'Hello, World!',
         ]);
     }
 }
