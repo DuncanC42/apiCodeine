@@ -27,6 +27,11 @@ class Token
      */
     private $created_at;
 
+    public function __construct()
+    {
+        $this->created_at = new \DateTimeImmutable(); // Set created_at to current datetime
+    }
+
     public function getId(): ?int
     {
         return $this->id;
