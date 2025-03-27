@@ -3,8 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\LeaderboardRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -28,16 +26,6 @@ class Leaderboard
      * @ORM\Column(type="datetime")
      */
     private $date_maj;
-
-    /**
-     * @ORM\OneToMany(targetEntity=Joueur::class, mappedBy="leaderboard")
-     */
-    private $joueurs;
-
-    public function __construct()
-    {
-        $this->joueurs = new ArrayCollection();
-    }
 
     public function getId(): ?int
     {
@@ -64,36 +52,6 @@ class Leaderboard
     public function setDateMaj(\DateTimeInterface $date_maj): self
     {
         $this->date_maj = $date_maj;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Joueur>
-     */
-    public function getJoueurs(): Collection
-    {
-        return $this->joueurs;
-    }
-
-    public function addJoueur(Joueur $joueur): self
-    {
-        if (!$this->joueurs->contains($joueur)) {
-            $this->joueurs[] = $joueur;
-            $joueur->setLeaderboard($this);
-        }
-
-        return $this;
-    }
-
-    public function removeJoueur(Joueur $joueur): self
-    {
-        if ($this->joueurs->removeElement($joueur)) {
-            // set the owning side to null (unless already changed)
-            if ($joueur->getLeaderboard() === $this) {
-                $joueur->setLeaderboard(null);
-            }
-        }
 
         return $this;
     }

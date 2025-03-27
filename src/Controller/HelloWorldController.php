@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,18 +14,16 @@ class HelloWorldController extends AbstractController
      */
     public function index(): Response
     {
-        return new JsonResponse([
-            'message' => 'Hello, World!',
+        return $this->render('hello_world/index.html.twig', [
+            'controller_name' => 'HelloWorldController',
         ]);
     }
 
     /**
-     * @Route("/api/hello", name="token_hello")
+     * @Route("/api/hello", name="api_hello_world", methods={"GET"})
      */
-    public function testToken(): Response
+    public function apiHello(): JsonResponse
     {
-        return new JsonResponse([
-            'message' => 'Hello, World!',
-        ]);
+        return $this->json(['message' => 'Hello World']);
     }
 }
