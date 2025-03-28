@@ -25,7 +25,9 @@ class AdminAuthenticator extends AbstractGuardAuthenticator
 
     public function supports(Request $request): bool
     {
-        return $request->getPathInfo() === '/intranet/login' && $request->isMethod('POST');
+        $isSupported = $request->headers->has('Authorization') && str_starts_with($request->headers->get('Authorization'), 'Bearer ');
+        error_log('AdminAuthenticator supports: ' . ($isSupported ? 'Yes' : 'No'));
+        return $isSupported;
     }
 
     public function getCredentials(Request $request)

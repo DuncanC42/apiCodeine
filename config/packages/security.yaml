@@ -40,15 +40,15 @@ security:
         intranet:
             pattern: ^/intranet/
             stateless: true
-            anonymous: true
-            provider: admin_provider # Ensure this uses the admin provider
+            anonymous: false # Ensure anonymous access is disabled for protected routes
+            provider: admin_provider
             guard:
                 authenticators:
-                    - App\Security\AdminAuthenticator
+                    - lexik_jwt_authentication.jwt_token_authenticator # Use JWT authenticator
 
     access_control:
         - { path: ^/intranet/create, roles: IS_AUTHENTICATED_ANONYMOUSLY } # Allow anonymous access to admin creation
-        - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/intranet/login, roles: IS_AUTHENTICATED_ANONYMOUSLY } # Allow anonymous access to intranet login
+        - { path: ^/intranet/, roles: IS_AUTHENTICATED_FULLY } # Ensure all other intranet routes require authentication
+        - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/intranet/, roles: IS_AUTHENTICATED_FULLY }
