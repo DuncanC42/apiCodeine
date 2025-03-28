@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=JoueurRepository::class)
@@ -21,7 +22,9 @@ class Joueur implements UserInterface
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=150, unique=true)
+     * @Assert\NotBlank(message="L'email est obligatoire.")
+     * @Assert\Email(message="L'email '{{ value }}' n'est pas valide.")
      */
     private $email;
 
@@ -31,7 +34,14 @@ class Joueur implements UserInterface
     private $derniere_connexion;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=50, unique=true)
+     * @Assert\NotBlank(message="Le pseudo est obligatoire.")
+     * @Assert\Length(
+     *      min=3,
+     *      max=20,
+     *      minMessage="Le pseudo doit contenir au moins {{ limit }} caractères.",
+     *      maxMessage="Le pseudo ne peut pas dépasser {{ limit }} caractères."
+     * )
      */
     private $pseudo;
 
