@@ -35,7 +35,17 @@ class HelloWorldController extends AbstractController
     }
 
     /**
-     * @Route("/api/hello", name="token_hello", methods={"GET"})
+     * @Route("/api/hello", name="token_extra_hello")
+     */
+    public function test1Token(): Response
+    {
+        return new JsonResponse([
+            'message' => 'Hello, World!',
+        ]);
+    }
+
+    /** 
+     * @Route("/intranet/hello", name="token_intra_hello", methods={"GET"})
      * @OA\Get(
      *     path="/api/hello",
      *     summary="Get a hello world message (API version)",
@@ -56,7 +66,7 @@ class HelloWorldController extends AbstractController
      * )
      * @OA\Tag(name="Hello API")
      */
-    public function testToken(): Response
+    public function test2Token(): Response
     {
         return new JsonResponse([
             'message' => 'Hello, World!',
