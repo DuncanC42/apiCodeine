@@ -20,7 +20,7 @@ class AdminController extends AbstractController
     }
 
     /**
-     * @Route("/intranet/create", name="admin_create", methods={"POST"})
+     * @Route("/intranet/register", name="admin_create", methods={"POST"})
      */
     public function createAdmin(
         Request $request,
@@ -30,6 +30,12 @@ class AdminController extends AbstractController
 
         if (!isset($data['email'], $data['password'])) {
             return new JsonResponse(['error' => 'Email and password are required'], 400);
+        }
+
+        // Check if admin with this email already exists
+        $existingAdmin = $entityManager->getRepository(Admin::class)->findOneBy(['email' => $data['email']]);
+        if ($existingAdmin) {
+            return new JsonResponse(['error' => 'An admin account with this email already exists'], 409);
         }
 
         $admin = new Admin();

@@ -37,6 +37,10 @@ security:
                 authenticators:
                     - App\Security\AdminAuthenticator
 
+        intranet_register:
+            pattern: ^/intranet/register
+            security: false
+
         api:
             pattern:   ^/api
             stateless: true
@@ -54,7 +58,8 @@ security:
                     - lexik_jwt_authentication.jwt_token_authenticator
 
     access_control:
-        - { path: ^/intranet/create, roles: IS_AUTHENTICATED_ANONYMOUSLY } # Allow anonymous access to admin creation
+        - { path: ^/api/register, roles: IS_AUTHENTICATED_ANONYMOUSLY } # Allow anonymous access to registration
+        - { path: ^/intranet/register, roles: IS_AUTHENTICATED_ANONYMOUSLY } # Allow anonymous access to admin creation
         - { path: ^/intranet/login, roles: IS_AUTHENTICATED_ANONYMOUSLY } # Allow anonymous access to intranet login
         - { path: ^/intranet/, roles: IS_AUTHENTICATED_FULLY } # Ensure all other intranet routes require authentication
         - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
