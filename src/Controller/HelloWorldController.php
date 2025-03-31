@@ -21,9 +21,19 @@ class HelloWorldController extends AbstractController
     }
 
     /**
-     * @Route("/api/hello", name="token_hello")
+     * @Route("/api/hello", name="token_extra_hello")
      */
-    public function testToken(): Response
+    public function test1Token(): Response
+    {
+        return new JsonResponse([
+            'message' => 'Hello, World!',
+        ]);
+    }
+
+    /** 
+     * @Route("/intranet/hello", name="token_intra_hello")
+     */
+    public function test2Token(): Response
     {
         return new JsonResponse([
             'message' => 'Hello, World!',
