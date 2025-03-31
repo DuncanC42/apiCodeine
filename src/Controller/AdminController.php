@@ -12,13 +12,19 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class AdminController extends AbstractController
 {
+    private $passwordEncoder;
+
+    public function __construct(UserPasswordEncoderInterface $passwordEncoder)
+    {
+        $this->passwordEncoder = $passwordEncoder;
+    }
+
     /**
      * @Route("/intranet/create", name="admin_create", methods={"POST"})
      */
     public function createAdmin(
         Request $request,
-        EntityManagerInterface $entityManager,
-        UserPasswordEncoderInterface $passwordEncoder
+        EntityManagerInterface $entityManager
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
@@ -28,11 +34,13 @@ class AdminController extends AbstractController
 
         $admin = new Admin();
         $admin->setEmail($data['email']);
-        $hashedPassword = $passwordEncoder->encodePassword($admin, $data['password']);
-        $admin->setPassword($hashedPassword);
+
+        // Encode the password before saving
+        $encodedPassword = $this->passwordEncoder->encodePassword($admin, $data['password']);
+        $admin->setPassword($encodedPassword);
 
         // Debug: Log the hashed password
-        error_log('Hashed Password: ' . $hashedPassword);
+        error_log('Hashed Password: ' . $encodedPassword);
 
         $admin->setDerniereConnexion(new \DateTime());
 

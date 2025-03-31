@@ -3,8 +3,7 @@ security:
         App\Entity\Joueur:
             algorithm: auto
         App\Entity\Admin:
-            algorithm: auto # Ensure this matches the algorithm used for encoding passwords
-
+            algorithm: auto
     providers:
         app_user_provider:
             entity:
@@ -20,7 +19,7 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
-        login:
+        login_api:
             pattern:  ^/api/login
             stateless: true
             anonymous: true
@@ -28,6 +27,15 @@ security:
             guard:
                 authenticators:
                     - App\Security\JoueurAuthenticator
+        
+        login_intranet:
+            pattern:  ^/intranet/login
+            stateless: true
+            anonymous: true
+            provider: admin_provider
+            guard:
+                authenticators:
+                    - App\Security\AdminAuthenticator
 
         api:
             pattern:   ^/api
@@ -40,11 +48,10 @@ security:
         intranet:
             pattern: ^/intranet/
             stateless: true
-            anonymous: false # Ensure anonymous access is disabled for protected routes
             provider: admin_provider
             guard:
                 authenticators:
-                    - lexik_jwt_authentication.jwt_token_authenticator # Use JWT authenticator
+                    - lexik_jwt_authentication.jwt_token_authenticator
 
     access_control:
         - { path: ^/intranet/create, roles: IS_AUTHENTICATED_ANONYMOUSLY } # Allow anonymous access to admin creation

@@ -25,9 +25,7 @@ class AdminAuthenticator extends AbstractGuardAuthenticator
 
     public function supports(Request $request): bool
     {
-        $isSupported = $request->headers->has('Authorization') && str_starts_with($request->headers->get('Authorization'), 'Bearer ');
-        error_log('AdminAuthenticator supports: ' . ($isSupported ? 'Yes' : 'No'));
-        return $isSupported;
+        return $request->getPathInfo() === '/intranet/login' && $request->isMethod('POST');
     }
 
     public function getCredentials(Request $request)
@@ -43,7 +41,6 @@ class AdminAuthenticator extends AbstractGuardAuthenticator
     public function getUser($credentials, UserProviderInterface $userProvider): ?UserInterface
     {
         if (null === $credentials['email']) {
-            error_log('AdminAuthenticator getUser: No email provided');
             return null;
         }
 
@@ -51,19 +48,15 @@ class AdminAuthenticator extends AbstractGuardAuthenticator
 
         // Ensure the user is an instance of Admin
         if (!$user instanceof \App\Entity\Admin) {
-            error_log('AdminAuthenticator getUser: User is not an Admin');
             return null;
         }
 
-        error_log('AdminAuthenticator getUser: ' . ($user ? 'Admin found' : 'Admin not found'));
         return $user;
     }
 
     public function checkCredentials($credentials, UserInterface $user): bool
     {
-        $isValid = $this->passwordEncoder->isPasswordValid($user, $credentials['password']);
-        error_log('Password Verification: ' . ($isValid ? 'Success' : 'Failure'));
-        return $isValid;
+        return $this->passwordEncoder->isPasswordValid($user, $credentials['password']);
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
