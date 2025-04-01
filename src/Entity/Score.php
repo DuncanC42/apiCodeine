@@ -39,7 +39,7 @@ class Score
     private $jeu;
 
     /**
-     * @ORM\ManyToOne(targetEntity=joueur::class, inversedBy="scores")
+     * @ORM\ManyToOne(targetEntity=Joueur::class, inversedBy="scores")
      * @ORM\JoinColumn(nullable=false)
      */
     private $player;
