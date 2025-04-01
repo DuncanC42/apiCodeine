@@ -9,7 +9,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use OpenApi\Annotations as OA;
 
+/**
+ * @OA\Tag(name="Comptes admins")
+ */
 class AdminController extends AbstractController
 {
     private $passwordEncoder;
@@ -21,6 +25,41 @@ class AdminController extends AbstractController
 
     /**
      * @Route("/intranet/register", name="admin_create", methods={"POST"})
+     * @OA\Post(
+     *     path="/intranet/register",
+     *     summary="Register a new admin account",
+     *     description="Creates a new administrator account with email and password",
+     *     operationId="createAdmin",
+     *     @OA\RequestBody(
+     *         description="Admin credentials",
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="email", type="string", example="admin@example.com"),
+     *             @OA\Property(property="password", type="string", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Admin account created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Admin account created successfully")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid input",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Email and password are required")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=409,
+     *         description="Admin account already exists",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="An admin account with this email already exists")
+     *         )
+     *     )
+     * )
      */
     public function createAdmin(
         Request $request,

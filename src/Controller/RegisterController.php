@@ -10,11 +10,57 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use OpenApi\Annotations as OA;
 
+/**
+ * @OA\Tag(name="Comptes joueurs")
+ */
 class RegisterController extends AbstractController
 {
     /**
-     * @Route("/register", name="app_register", methods={"POST"})
+     * @Route("api/register", name="app_register", methods={"POST"})
+     * @OA\Post(
+     *     path="/api/register",
+     *     summary="Register a new player",
+     *     description="Creates a new player account with pseudo and email",
+     *     operationId="registerPlayer",
+     *     @OA\RequestBody(
+     *         description="Player information",
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="pseudo", type="string", example="Player1"),
+     *             @OA\Property(property="email", type="string", example="player@example.com")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Player registered successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Joueur inscrit avec succès."),
+     *             @OA\Property(
+     *                 property="joueur",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="pseudo", type="string", example="Player1"),
+     *                 @OA\Property(property="email", type="string", example="player@example.com")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid input",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Pseudo et email requis !")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=409,
+     *         description="Email already exists",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Un joueur avec cet email existe déjà.")
+     *         )
+     *     )
+     * )
      */
     public function register(EntityManagerInterface $manager, Request $request): Response
     {
