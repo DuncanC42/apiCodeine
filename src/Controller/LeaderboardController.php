@@ -102,7 +102,7 @@ class LeaderboardController extends AbstractController
             FROM App\Entity\Score s 
             JOIN s.player j 
             JOIN s.jeu g
-            WHERE g.id = :gameId 
+            WHERE g.etape = :gameId 
             ORDER BY s.points DESC'
         )->setParameter('gameId', $gameId);
 
@@ -117,14 +117,14 @@ class LeaderboardController extends AbstractController
             'SELECT COUNT(s) + 1 
             FROM App\Entity\Score s 
             JOIN s.jeu g
-            WHERE g.id = :gameId 
+            WHERE g.etape = :gameId 
             AND s.points > (
                 SELECT COALESCE(s2.points, 0) 
                 FROM App\Entity\Score s2 
                 JOIN s2.player p
                 JOIN s2.jeu g2
                 WHERE p.id = :userId 
-                AND g2.id = :gameId
+                AND g2.etape = :gameId
             )'
         )
             ->setParameter('gameId', $gameId)
@@ -139,7 +139,7 @@ class LeaderboardController extends AbstractController
             JOIN s.jeu g
             JOIN s.player p
             WHERE p.id = :userId 
-            AND g.id = :gameId'
+            AND g.etape = :gameId'
         )
             ->setParameter('gameId', $gameId)
             ->setParameter('userId', $currentUser->getId());
