@@ -8,6 +8,8 @@ use Doctrine\Persistence\ObjectManager;
 
 class JeuFixtures extends Fixture
 {
+    public const JEU_REFERENCE_PREFIX = 'jeu_';
+    
     public function load(ObjectManager $manager): void
     {
         $jeuxData = [
@@ -63,7 +65,7 @@ class JeuFixtures extends Fixture
             ]
         ];
 
-        foreach ($jeuxData as $jeuData) {
+        foreach ($jeuxData as $index => $jeuData) {
             $jeu = new Jeu();
             $jeu->setNom($jeuData['nom']);
             $jeu->setEtape($jeuData['etape']);
@@ -75,6 +77,9 @@ class JeuFixtures extends Fixture
             $jeu->setTempsMax($jeuData['temps_max']);
 
             $manager->persist($jeu);
+            
+            // Add reference for each game
+            $this->addReference(self::JEU_REFERENCE_PREFIX . $index, $jeu);
         }
 
         $manager->flush();
