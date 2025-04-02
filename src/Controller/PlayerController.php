@@ -2,9 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Jeu;
 use App\Entity\Joueur;
-use App\Entity\Score;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,40 +11,123 @@ use Symfony\Component\Routing\Annotation\Route;
 class PlayerController extends AbstractController
 {
     /**
-     * @Route("/player", name="app_player")
+     * @Route("/player/{id}", name="get_player_by_id", methods={"GET"})
      */
-    public function index(): Response
+    public function getPlayerById(ManagerRegistry $doctrine, int $id): Response
     {
-        return $this->render('player/index.html.twig', [
-            'controller_name' => 'PlayerController',
-        ]);
-    }
+        $joueur = $doctrine->getRepository(Joueur::class)->find($id);
 
-    /**
-     * @Route("/players", name="get_all_players", methods={"GET"})
-     */
-    public function retrieveAllPlayers(): Response
-    {
-        $joueurRepository = $this->getDoctrine()->getRepository(Joueur::class);
-        $joueurs = $joueurRepository->findAll();
+        if (!$joueur) {
+            return $this->json(['success' => false, 'message' => 'Joueur non trouvé'], 404);
+        }
 
-        $data = [];
-        foreach ($joueurs as $joueur) {
-            $data[] = [
+        return $this->json([
+            'success' => true,
+            'joueur' => [
                 'id' => $joueur->getId(),
                 'pseudo' => $joueur->getPseudo(),
                 'email' => $joueur->getEmail(),
                 'derniere_connexion' => $joueur->getDerniereConnexion()->format('Y-m-d H:i:s'),
                 'temps_joue' => $joueur->getTempsJoue(),
-                'nb_partage' => $joueur->getNbPartage(),
-                // Vous pouvez ajouter d'autres champs au besoin
-            ];
+                'nb_partage' => $joueur->getNbPartage()
+            ]
+        ], 200);
+    }
+
+    /**
+     * @Route("/player/{id}/score", name="get_player_and_score_by_id", methods={"GET"})
+     */
+    public function getPlayerAndScoreById(ManagerRegistry $doctrine, int $id): Response
+    {
+        $entityManager = $doctrine->getManager();
+        $conn = $entityManager->getConnection();
+
+        $sql = "
+    WITH Classement AS (
+        SELECT 
+            s.player_id,
+            s.jeu_id,
+            s.points,
+            RANK() OVER (PARTITION BY s.jeu_id ORDER BY s.points DESC) AS classement
+        FROM score s
+    )
+    SELECT 
+        j.id AS joueur_id,
+        j.pseudo,
+        j.email,
+        j.derniere_connexion,
+        j.temps_joue,
+        j.nb_partage,
+        jeu.id AS jeu_id,
+        jeu.nom AS jeu_nom,
+        s.id AS score_id,
+        s.points,
+        c.classement
+    FROM joueur j
+    LEFT JOIN score s ON s.player_id = j.id
+    LEFT JOIN jeu ON s.jeu_id = jeu.id
+    LEFT JOIN Classement c ON c.player_id = j.id AND c.jeu_id = jeu.id
+    WHERE j.id = :player_id
+    ORDER BY jeu.id, c.classement;
+    ";
+
+        // Exécuter la requête principale
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['player_id' => $id]);
+        $rankingData = $resultSet->fetchAllAssociative();
+
+        // Vérifier si le joueur a des scores
+        if (empty($rankingData)) {
+            return $this->json(['success' => false, 'message' => 'Aucun score trouvé pour ce joueur'], 404);
         }
+
+        // Requête pour récupérer le classement général
+        $rankingSql = "
+    WITH ranked_scores AS (
+        SELECT 
+            s.player_id, 
+            s.jeu_id,
+            RANK() OVER (PARTITION BY s.jeu_id ORDER BY s.points DESC) AS rank
+        FROM score s
+    )
+    SELECT 
+        j.id AS joueur_id, 
+        j.pseudo, 
+        j.email, 
+        ROUND(AVG(r.rank)) AS moyenne_positions
+    FROM joueur j
+    LEFT JOIN ranked_scores r ON j.id = r.player_id
+    WHERE j.id = :player_id
+    GROUP BY j.id
+    ";
+
+        $stmt = $conn->prepare($rankingSql);
+        $resultSet = $stmt->executeQuery(['player_id' => $id]);
+        $globalRankingData = $resultSet->fetchAssociative();
+
+        // Récupérer le classement général (ou null si aucune donnée)
+        $globalRanking = $globalRankingData !== false ? $globalRankingData['moyenne_positions'] : null;
 
         return $this->json([
             'success' => true,
-            'count' => count($data),
-            'joueurs' => $data
+            'joueur' => [
+                'id' => $rankingData[0]['joueur_id'],
+                'pseudo' => $rankingData[0]['pseudo'],
+                'email' => $rankingData[0]['email'],
+                'derniere_connexion' => $rankingData[0]['derniere_connexion'],
+                'temps_joue' => $rankingData[0]['temps_joue'],
+                'nb_partage' => $rankingData[0]['nb_partage'],
+                'classement_general' => $globalRanking
+            ],
+            'scores' => array_map(function ($row) {
+                return [
+                    'jeu_id' => $row['jeu_id'],
+                    'jeu_nom' => $row['jeu_nom'],
+                    'score_id' => $row['score_id'],
+                    'points' => $row['points'],
+                    'classement' => $row['classement']
+                ];
+            }, $rankingData)
         ]);
     }
 
@@ -58,7 +139,6 @@ class PlayerController extends AbstractController
     {
         $entityManager = $doctrine->getManager();
 
-        // Requête SQL native optimisée
         $sql = "
         WITH ranked_scores AS (
             SELECT 
@@ -76,39 +156,19 @@ class PlayerController extends AbstractController
         LEFT JOIN ranked_scores r ON j.id = r.player_id
         GROUP BY j.id
         ORDER BY moyenne_positions ASC NULLS LAST
-    ";
+        ";
 
         $conn = $entityManager->getConnection();
         $stmt = $conn->prepare($sql);
         $resultSet = $stmt->executeQuery();
-
         $classementGlobal = $resultSet->fetchAllAssociative();
-
-        // Formater les données pour la réponse JSON
-        $data = [];
-        $rank = 1;
-        foreach ($classementGlobal as $joueurData) {
-            $data[] = [
-                'id' => $joueurData['joueur_id'],
-                'pseudo' => $joueurData['pseudo'],
-                'email' => $joueurData['email'],
-                'classement' => $joueurData['moyenne_positions'] !== null ? $rank : null,
-                'moyenne_positions' => $joueurData['moyenne_positions'] !== null ? round($joueurData['moyenne_positions'], 2) : null
-            ];
-
-            if ($joueurData['moyenne_positions'] !== null) {
-                $rank++;
-            }
-        }
 
         return $this->json([
             'success' => true,
-            'count' => count($data),
-            'joueurs' => $data
+            'count' => count($classementGlobal),
+            'joueurs' => $classementGlobal
         ]);
     }
-
-
 
     /**
      * @Route("/players/by/id", name="get_players_ranking_by_id", methods={"GET"})
@@ -117,7 +177,6 @@ class PlayerController extends AbstractController
     {
         $entityManager = $doctrine->getManager();
 
-        // Requête SQL pour calculer le classement
         $sql = "
         WITH ranked_scores AS (
             SELECT 
@@ -140,12 +199,11 @@ class PlayerController extends AbstractController
                RANK() OVER (ORDER BY moyenne_positions ASC NULLS LAST) AS classement
         FROM player_ranks
         ORDER BY joueur_id ASC
-    ";
+        ";
 
         $conn = $entityManager->getConnection();
         $stmt = $conn->prepare($sql);
         $resultSet = $stmt->executeQuery();
-
         $classementGlobal = $resultSet->fetchAllAssociative();
 
         return $this->json([
