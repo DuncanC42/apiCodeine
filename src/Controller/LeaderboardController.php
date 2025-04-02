@@ -73,6 +73,133 @@ class LeaderboardController extends AbstractController
     }
 
     /**
+     * @Route("/leaderboard/general", name="general", methods={"GET"})
+     */
+    public function getGeneralLeaderboard(Request $request)
+    {
+        // Get pagination parameters
+        $limit = (int) $request->query->get('limit', 10);
+        $page = (int) $request->query->get('page', 1);
+        $offset = ($page - 1) * $limit;
+
+        // Get current user
+        /** @var Joueur|null $currentUser */
+        $currentUser = $this->security->getUser();
+
+        if (!$currentUser) {
+            return $this->json([
+                'error' => 'User not authenticated'
+            ], 401);
+        }
+
+        $conn = $this->entityManager->getConnection();
+        
+        // SQL query to get the average rank of players across all games
+        $sql = "
+        WITH ranked_scores AS (
+            SELECT 
+                s.player_id, 
+                s.jeu_id,
+                RANK() OVER (PARTITION BY s.jeu_id ORDER BY s.points DESC) AS rank
+            FROM score s
+        )
+        SELECT 
+            j.id AS joueur_id, 
+            j.pseudo AS username, 
+            COALESCE(AVG(r.rank), NULL) AS average_rank
+        FROM joueur j
+        LEFT JOIN ranked_scores r ON j.id = r.player_id
+        GROUP BY j.id, j.pseudo
+        ORDER BY average_rank ASC NULLS LAST
+        LIMIT :limit OFFSET :offset
+        ";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue('offset', $offset, \PDO::PARAM_INT);
+        $resultSet = $stmt->executeQuery();
+        $leaderboard = $resultSet->fetchAllAssociative();
+        
+        // Format the leaderboard data
+        $formattedLeaderboard = [];
+        $rank = $offset + 1;
+        foreach ($leaderboard as $player) {
+            $formattedLeaderboard[] = [
+                'id' => $player['joueur_id'],
+                'username' => $player['username'],
+                'average_rank' => $player['average_rank'] !== null ? round((float)$player['average_rank'], 2) : null,
+                'position' => $rank++
+            ];
+        }
+
+        // Count total players
+        $countSql = "SELECT COUNT(DISTINCT j.id) FROM joueur j";
+        $totalPlayers = (int)$conn->executeQuery($countSql)->fetchOne();
+        
+        // Get current player's position and average rank
+        $userRankSql = "
+        WITH ranked_scores AS (
+            SELECT 
+                s.player_id, 
+                s.jeu_id,
+                RANK() OVER (PARTITION BY s.jeu_id ORDER BY s.points DESC) AS rank
+            FROM score s
+        )
+        SELECT 
+            j.pseudo AS username, 
+            COALESCE(AVG(r.rank), NULL) AS average_rank,
+            (
+                SELECT COUNT(*) + 1 FROM (
+                    SELECT j2.id, COALESCE(AVG(rs.rank), NULL) AS avg_rank
+                    FROM joueur j2
+                    LEFT JOIN ranked_scores rs ON j2.id = rs.player_id
+                    GROUP BY j2.id
+                    HAVING COALESCE(AVG(rs.rank), NULL) IS NOT NULL 
+                    AND COALESCE(AVG(rs.rank), NULL) < (
+                        SELECT COALESCE(AVG(rs2.rank), NULL) 
+                        FROM ranked_scores rs2 
+                        WHERE rs2.player_id = :userId
+                    )
+                ) AS better_players
+            ) AS user_position
+        FROM joueur j
+        LEFT JOIN ranked_scores r ON j.id = r.player_id
+        WHERE j.id = :userId
+        GROUP BY j.id, j.pseudo
+        ";
+
+        $userRankStmt = $conn->prepare($userRankSql);
+        $userRankStmt->bindValue('userId', $currentUser->getId(), \PDO::PARAM_INT);
+        $userStats = $userRankStmt->executeQuery()->fetchAssociative();
+
+        $userPosition = null;
+        $userAvgRank = null;
+        
+        if ($userStats) {
+            $userPosition = $userStats['average_rank'] !== null ? (int)$userStats['user_position'] : null;
+            $userAvgRank = $userStats['average_rank'] !== null ? round((float)$userStats['average_rank'], 2) : null;
+        }
+
+        // Format the response
+        $response = [
+            'leaderboard' => [
+                'players' => $formattedLeaderboard,
+                'total' => $totalPlayers,
+                'page' => $page,
+                'limit' => $limit,
+                'totalPages' => ceil($totalPlayers / $limit)
+            ],
+            'currentPlayer' => [
+                'username' => $currentUser->getPseudo(),
+                'average_rank' => $userAvgRank,
+                'position' => $userPosition
+            ]
+        ];
+
+        return $this->json($response);
+    }
+
+    /**
      * Get the leaderboard for a specific game
      *
      * @param int $gameId

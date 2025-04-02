@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class PlayerController extends AbstractController
 {
     /**
-     * @Route("/player", name="app_player")
+     * @Route("intranet/player", name="app_player")
      */
     public function index(): Response
     {
@@ -23,7 +23,7 @@ class PlayerController extends AbstractController
     }
 
     /**
-     * @Route("/players", name="get_all_players", methods={"GET"})
+     * @Route("intranet/players", name="get_all_players", methods={"GET"})
      */
     public function retrieveAllPlayers(): Response
     {
@@ -52,7 +52,7 @@ class PlayerController extends AbstractController
 
 
     /**
-     * @Route("/players/by/rank", name="get_players_ranking", methods={"GET"})
+     * @Route("intranet/players/by/rank", name="get_players_ranking", methods={"GET"})
      */
     public function retrievePlayersRanking(ManagerRegistry $doctrine): Response
     {
@@ -111,7 +111,7 @@ class PlayerController extends AbstractController
 
 
     /**
-     * @Route("/players/by/id", name="get_players_ranking_by_id", methods={"GET"})
+     * @Route("intranet/players/by/id", name="get_players_ranking_by_id", methods={"GET"})
      */
     public function retrievePlayersRankingById(ManagerRegistry $doctrine): Response
     {
