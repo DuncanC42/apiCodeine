@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Admin;
+use App\Entity\Token;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,14 +29,15 @@ class AdminController extends AbstractController
      * @OA\Post(
      *     path="/intranet/register",
      *     summary="Register a new admin account",
-     *     description="Creates a new administrator account with email and password",
+     *     description="Creates a new administrator account with email, password and token",
      *     operationId="createAdmin",
      *     @OA\RequestBody(
      *         description="Admin credentials",
      *         required=true,
      *         @OA\JsonContent(
      *             @OA\Property(property="email", type="string", example="admin@example.com"),
-     *             @OA\Property(property="password", type="string", example="password123")
+     *             @OA\Property(property="password", type="string", example="password123"),
+     *             @OA\Property(property="token", type="string", example="admin_registration_token")
      *         )
      *     ),
      *     @OA\Response(
@@ -49,7 +51,14 @@ class AdminController extends AbstractController
      *         response=400,
      *         description="Invalid input",
      *         @OA\JsonContent(
-     *             @OA\Property(property="error", type="string", example="Email and password are required")
+     *             @OA\Property(property="error", type="string", example="Email, password and token are required")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Invalid token",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Invalid registration token")
      *         )
      *     ),
      *     @OA\Response(
@@ -67,8 +76,14 @@ class AdminController extends AbstractController
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['email'], $data['password'])) {
-            return new JsonResponse(['error' => 'Email and password are required'], 400);
+        if (!isset($data['email'], $data['password'], $data['token'])) {
+            return new JsonResponse(['error' => 'Email, password and token are required'], 400);
+        }
+
+        // Verify the token exists in the database
+        $token = $entityManager->getRepository(Token::class)->findOneBy(['key' => $data['token']]);
+        if (!$token) {
+            return new JsonResponse(['error' => 'Invalid registration token'], 403);
         }
 
         // Check if admin with this email already exists
