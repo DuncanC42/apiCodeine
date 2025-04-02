@@ -127,7 +127,7 @@ class LeaderboardController extends AbstractController
             $formattedLeaderboard[] = [
                 'id' => $player['joueur_id'],
                 'username' => $player['username'],
-                'average_rank' => $player['average_rank'] !== null ? round((float)$player['average_rank'], 2) : null,
+                'score' => $player['average_rank'] !== null ? round((float)$player['average_rank'], 2) : null,
                 'position' => $rank++
             ];
         }
@@ -191,7 +191,7 @@ class LeaderboardController extends AbstractController
             ],
             'currentPlayer' => [
                 'username' => $currentUser->getPseudo(),
-                'average_rank' => $userAvgRank,
+                'score' => $userAvgRank,
                 'position' => $userPosition
             ]
         ];
@@ -238,6 +238,12 @@ class LeaderboardController extends AbstractController
         $leaderboard = $leaderboardQuery->setMaxResults($limit)
             ->setFirstResult($offset)
             ->getResult();
+            
+        // Add position to each player in the leaderboard
+        $rank = $offset + 1;
+        foreach ($leaderboard as &$player) {
+            $player['position'] = $rank++;
+        }
 
         // Get current player's position
         $userPositionQuery = $this->entityManager->createQuery(
