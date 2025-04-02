@@ -10,9 +10,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
+use OpenApi\Annotations as OA;
 
 /**
  * @Route("/api", name="api_leaderboard_")
+ * @OA\Tag(name="Leaderboards")
  */
 class LeaderboardController extends AbstractController
 {
@@ -34,6 +36,39 @@ class LeaderboardController extends AbstractController
 
     /**
      * @Route("/leaderboard/taquin", name="taquin", methods={"GET"})
+     * @OA\Get(
+     *     path="/api/leaderboard/taquin",
+     *     summary="Get Taquin game leaderboard",
+     *     description="Returns the leaderboard for the Taquin game",
+     *     operationId="getTaquinLeaderboard",
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Number of results to return",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="leaderboard", type="object"),
+     *             @OA\Property(property="currentPlayer", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="User not authenticated"
+     *     ),
+     *     security={{"Bearer": {}}}
+     * )
      */
     public function getTaquinLeaderboard(Request $request)
     {
@@ -42,6 +77,39 @@ class LeaderboardController extends AbstractController
 
     /**
      * @Route("/leaderboard/tirelire", name="tirelire", methods={"GET"})
+     * @OA\Get(
+     *     path="/api/leaderboard/tirelire",
+     *     summary="Get Tirelire game leaderboard",
+     *     description="Returns the leaderboard for the Tirelire game",
+     *     operationId="getTirelireLeaderboard",
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Number of results to return",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="leaderboard", type="object"),
+     *             @OA\Property(property="currentPlayer", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="User not authenticated"
+     *     ),
+     *     security={{"Bearer": {}}}
+     * )
      */
     public function getTirelireLeaderboard(Request $request)
     {
@@ -50,6 +118,39 @@ class LeaderboardController extends AbstractController
 
     /**
      * @Route("/leaderboard/dino", name="dino", methods={"GET"})
+     * @OA\Get(
+     *     path="/api/leaderboard/dino",
+     *     summary="Get Dino game leaderboard",
+     *     description="Returns the leaderboard for the Dino game",
+     *     operationId="getDinoLeaderboard",
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Number of results to return",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="leaderboard", type="object"),
+     *             @OA\Property(property="currentPlayer", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="User not authenticated"
+     *     ),
+     *     security={{"Bearer": {}}}
+     * )
      */
     public function getDinoLeaderboard(Request $request)
     {
@@ -58,6 +159,39 @@ class LeaderboardController extends AbstractController
 
     /**
      * @Route("/leaderboard/fruitninja", name="fruitninja", methods={"GET"})
+     * @OA\Get(
+     *     path="/api/leaderboard/fruitninja",
+     *     summary="Get Fruit Ninja game leaderboard",
+     *     description="Returns the leaderboard for the Fruit Ninja game",
+     *     operationId="getFruitNinjaLeaderboard",
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Number of results to return",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="leaderboard", type="object"),
+     *             @OA\Property(property="currentPlayer", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="User not authenticated"
+     *     ),
+     *     security={{"Bearer": {}}}
+     * )
      */
     public function getFruitNinjaLeaderboard(Request $request)
     {
@@ -66,6 +200,39 @@ class LeaderboardController extends AbstractController
 
     /**
      * @Route("/leaderboard/dents", name="dents", methods={"GET"})
+     * @OA\Get(
+     *     path="/api/leaderboard/dents",
+     *     summary="Get Dents game leaderboard",
+     *     description="Returns the leaderboard for the Dents game",
+     *     operationId="getDentsLeaderboard",
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Number of results to return",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="leaderboard", type="object"),
+     *             @OA\Property(property="currentPlayer", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="User not authenticated"
+     *     ),
+     *     security={{"Bearer": {}}}
+     * )
      */
     public function getDentsLeaderboard(Request $request)
     {
@@ -74,6 +241,39 @@ class LeaderboardController extends AbstractController
 
     /**
      * @Route("/leaderboard/general", name="general", methods={"GET"})
+     * @OA\Get(
+     *     path="/api/leaderboard/general",
+     *     summary="Get general leaderboard",
+     *     description="Returns the general leaderboard across all games",
+     *     operationId="getGeneralLeaderboard",
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Number of results to return",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="leaderboard", type="object"),
+     *             @OA\Property(property="currentPlayer", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="User not authenticated"
+     *     ),
+     *     security={{"Bearer": {}}}
+     * )
      */
     public function getGeneralLeaderboard(Request $request)
     {
