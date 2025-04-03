@@ -2,7 +2,7 @@
 namespace App\Controller;
 
 use App\Entity\Score;
-use App\Entity\Joueur;
+use App\Entity\Jeu;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use OpenApi\Annotations as OA;
@@ -17,6 +17,7 @@ use Symfony\Component\Security\Core\Security;
 class ScoreController extends Controller
 {
     private $security;
+    private $entityManager;
 
     public function __construct(EntityManagerInterface $entityManager, Security $security)
     {
@@ -50,68 +51,85 @@ class ScoreController extends Controller
 
 
 
-    public function score(Request $request, EntityManagerInterface $manager)
+    public function score(Request $request, EntityManagerInterface $em)
     {
-        // Réponse préliminaire pour les requêtes OPTIONS (pré-vol)
-        if ($request->getMethod() === 'OPTIONS') {
-            return new JsonResponse([], 200, [
-                'Access-Control-Allow-Origin' => '*',
-                'Access-Control-Allow-Methods' => 'POST, OPTIONS',
-                'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
-            ]);
-        }
-
-        // 1. Récupérer l'utilisateur connecté (Symfony 4.4)
-        $user = $this->security->getUser();
-        if (!$user) {
-            return new JsonResponse(['error' => 'Authentification requise.'], 401);
-        }
-        dump(get_class_methods($user));
-
-        // 2. Décoder les données JSON
-        $data = json_decode($request->getContent(), true);
-        if (!$data || !isset($data['jeu_id']) || !isset($data['points'])) {
-            return new JsonResponse(['error' => 'Données invalides.'], 400);
-        }
-
-        // 3. Chercher le score existant
-        $scoreRepo = $manager->getRepository(Score::class);
-        $existingScore = $scoreRepo->findOneBy([
-            'player_id' => $user->getId(),
-            'jeu_id' => $data['jeu_id']
-        ]);
-
-        // 4. Logique de mise à jour
-        if ($existingScore) {
-            if ($data['points'] > $existingScore->getPoints()) {
-                $existingScore->setPoints($data['points']);
-                $message = "Score mis à jour.";
-            } else {
-                return new JsonResponse([
-                    'message' => 'Le score actuel est déjà meilleur.',
-                    'score' => $existingScore
-                ], 200);
+        $logData = [
+            'time' => date('Y-m-d H:i:s'),
+            'user' => $this->getUser() ? $this->getUser()->getId() : null,
+            'request' => $request->getContent(),
+            'decoded' => json_decode($request->getContent(), true)
+        ];
+    
+        file_put_contents('score_debug.log', print_r($logData, true)."\n\n", FILE_APPEND);
+        try {
+            // 1. Authentification
+            $user = $this->getUser();
+            if (!$user) {
+                return new JsonResponse(['error' => 'Authentification requise'], 401);
             }
-        } else {
-            $existingScore = new Score();
-            $existingScore->setPlayerId($user->getId());
-            $existingScore->setJeuId($data['jeu_id']);
-            $existingScore->setPoints($data['points']);
-            $manager->persist($existingScore);
-            $message = "Score enregistré.";
+    
+            // 2. Récupération des données
+            $data = json_decode($request->getContent(), true);
+            if (!$data || !isset($data['jeu_id']) || !isset($data['points'])) {
+                return new JsonResponse(['error' => 'Données invalides - jeu_id et points requis'], 400);
+            }
+    
+            // 3. Vérification que le jeu existe
+            $jeu = $em->getRepository(Jeu::class)->findOneBy(['etape' => $data['jeu_id']]);
+            if (!$jeu) {
+                return new JsonResponse(['error' => 'Jeu introuvable'], 404);
+            }
+    
+            // 4. Recherche d'un score existant
+            $existingScore = $em->getRepository(Score::class)->findOneBy([
+                'player' => $user,
+                'jeu' => $jeu
+            ]);
+    
+            // 5. Logique de création/mise à jour
+            if ($existingScore) {
+                // Compare les scores (on garde le plus élevé)
+                if ($data['points'] > $existingScore->getPoints()) {
+                    $existingScore->setPoints($data['points']);
+                    $message = "Score mis à jour";
+                } else {
+                    return new JsonResponse([
+                        'message' => 'Score existant déjà meilleur',
+                        'score_id' => $existingScore->getId(),
+                        'points' => $existingScore->getPoints()
+                    ], 200);
+                }
+            } else {
+                // Crée un nouveau score
+                $existingScore = new Score();
+                $existingScore->setPoints($data['points']);
+                $existingScore->setJeu($jeu);
+                $existingScore->setPlayer($user);
+                $existingScore->setTempsJeu(0); // Valeur par défaut
+                $existingScore->setNbEssais(1); // Valeur par défaut
+                $message = "Score enregistré";
+            }
+    
+            // 6. Sauvegarde
+            $em->persist($existingScore);
+            $em->flush();
+    
+            return new JsonResponse([
+                'message' => $message,
+                'score_id' => $existingScore->getId(),
+                'points' => $existingScore->getPoints(),
+                'jeu' => $jeu->getNom()
+            ], 201);
+    
+        } catch (\Exception $e) {
+            $logData['error'] = $e->getMessage();
+            $logData['trace'] = $e->getTraceAsString();
+            file_put_contents('score_errors.log', print_r($logData, true)."\n\n", FILE_APPEND);
+            
+            return new JsonResponse([
+                'error' => 'Erreur serveur',
+                'details' => 'Voir les logs serveur' // En production, retirez les détails
+            ], 500);
         }
-
-        // 5. Sauvegarder
-        $manager->flush();
-
-        // 6. Retourner la réponse
-        return new JsonResponse([
-            'message' => $message,
-            'score' => [
-                'player_id' => $existingScore->getPlayerId(),
-                'jeu_id' => $existingScore->getJeuId(),
-                'points' => $existingScore->getPoints()
-            ]
-        ], 201);
     }
 }
