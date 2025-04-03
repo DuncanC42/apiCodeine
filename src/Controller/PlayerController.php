@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class PlayerController extends AbstractController
 {
     /**
-     * @Route("/player/{id}", name="get_player_by_id", methods={"GET"})
+     * @Route("/intranet/player/{id}", name="get_player_by_id", methods={"GET"})
      */
     public function getPlayerById(ManagerRegistry $doctrine, int $id): Response
     {
@@ -35,7 +35,7 @@ class PlayerController extends AbstractController
     }
 
     /**
-     * @Route("/player/{id}/score", name="get_player_and_score_by_id", methods={"GET"})
+     * @Route("/intranet/player/{id}/score", name="get_player_and_score_by_id", methods={"GET"})
      */
     public function getPlayerAndScoreById(ManagerRegistry $doctrine, int $id): Response
     {
@@ -133,7 +133,7 @@ class PlayerController extends AbstractController
 
 
     /**
-     * @Route("/players/by/rank", name="get_players_ranking", methods={"GET"})
+     * @Route("/intranet/players/by/rank", name="get_players_ranking", methods={"GET"})
      */
     public function retrievePlayersRanking(ManagerRegistry $doctrine): Response
     {
@@ -171,7 +171,7 @@ class PlayerController extends AbstractController
     }
 
     /**
-     * @Route("/players/by/id", name="get_players_ranking_by_id", methods={"GET"})
+     * @Route("/intranet/players/by/id", name="get_players_ranking_by_id", methods={"GET"})
      */
     public function retrievePlayersRankingById(ManagerRegistry $doctrine): Response
     {
