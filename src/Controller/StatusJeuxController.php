@@ -50,11 +50,11 @@ class StatusJeuxController extends AbstractController
             $scoresByGame[$score->getJeu()->getId()] = $score->getPoints();
         }
 
-        // Prepare result array with game names as keys
+        // Prepare result array with "jeux<etape>" as keys
         $result = [];
         foreach ($jeux as $jeu) {
-            $nomJeu = $jeu->getNom();
-            $result[$nomJeu] = isset($scoresByGame[$jeu->getId()]) && $scoresByGame[$jeu->getId()] > 0;
+            $key = 'jeux' . $jeu->getEtape();
+            $result[$key] = isset($scoresByGame[$jeu->getId()]) && $scoresByGame[$jeu->getId()] > 0;
         }
 
         return $this->json($result);
