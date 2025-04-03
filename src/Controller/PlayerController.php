@@ -133,7 +133,7 @@ class PlayerController extends AbstractController
 
 
     /**
-     * @Route("/intranet/players/by/rank", name="get_players_ranking", methods={"GET"})
+     * @Route("intranet/players/by/rank", name="get_players_ranking", methods={"GET"})
      */
     public function retrievePlayersRanking(ManagerRegistry $doctrine): Response
     {
@@ -171,7 +171,7 @@ class PlayerController extends AbstractController
     }
 
     /**
-     * @Route("/intranet/players/by/id", name="get_players_ranking_by_id", methods={"GET"})
+     * @Route("intranet/players/by/id", name="get_players_ranking_by_id", methods={"GET"})
      */
     public function retrievePlayersRankingById(ManagerRegistry $doctrine): Response
     {
