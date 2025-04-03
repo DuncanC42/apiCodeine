@@ -5,6 +5,7 @@
         "php": ">=7.2",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "cboden/ratchet": "^0.4.4",
         "doctrine/annotations": "^1.0",
         "doctrine/dbal": "^2.13",
         "doctrine/doctrine-bundle": "^2.7",
@@ -28,6 +29,7 @@
         "symfony/twig-bundle": "4.4.*",
         "symfony/validator": "4.4.*",
         "symfony/yaml": "4.4.*",
+        "textalk/websocket": "^1.5",
         "zircote/swagger-php": "^4.11"
     },
     "require-dev": {
