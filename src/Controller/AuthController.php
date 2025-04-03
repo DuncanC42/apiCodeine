@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use App\Entity\Joueur;
 use OpenApi\Annotations as OA;
 
 /**
@@ -33,7 +34,8 @@ class AuthController extends AbstractController
      *         response=200,
      *         description="Successful authentication",
      *         @OA\JsonContent(
-     *             @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...")
+     *             @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."),
+     *             @OA\Property(property="user_type", type="string", example="joueur")
      *         )
      *     ),
      *     @OA\Response(
@@ -54,9 +56,17 @@ class AuthController extends AbstractController
             return new JsonResponse(['error' => 'Authentication failed'], 401);
         }
 
+        // Ensure this is a Joueur
+        if (!$user instanceof Joueur) {
+            return new JsonResponse(['error' => 'Invalid user type for this endpoint'], 403);
+        }
+
         // Generate a JWT token
         $token = $jwtManager->create($user);
 
-        return new JsonResponse(['token' => $token]);
+        return new JsonResponse([
+            'token' => $token,
+            'user_type' => 'joueur'
+        ]);
     }
 }

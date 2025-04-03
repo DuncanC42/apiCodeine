@@ -23,11 +23,11 @@ security:
             pattern:  ^/api/login
             stateless: true
             anonymous: true
-            provider: app_user_provider # Explicitly set the provider
+            provider: app_user_provider
             guard:
                 authenticators:
                     - App\Security\JoueurAuthenticator
-        
+
         login_intranet:
             pattern:  ^/intranet/login
             stateless: true
@@ -44,27 +44,33 @@ security:
         api_register:
             pattern: ^/api/register
             security: false
+            
+        api_parametres:
+            pattern: ^/api/parametres
+            security: false
 
-        api:
-            pattern:   ^/api
-            stateless: true
-            provider: app_user_provider # Explicitly set the provider
-            guard:
-                authenticators:
-                    - lexik_jwt_authentication.jwt_token_authenticator
-
+        # Intranet firewall must come before the API firewall to ensure priority
         intranet:
             pattern: ^/intranet/
             stateless: true
             provider: admin_provider
             guard:
                 authenticators:
-                    - lexik_jwt_authentication.jwt_token_authenticator
+                    - App\Security\AdminJWTAuthenticator
+
+        api:
+            pattern:   ^/api
+            stateless: true
+            provider: app_user_provider
+            guard:
+                authenticators:
+                    - App\Security\JoueurJWTAuthenticator
 
     access_control:
-        - { path: ^/api/register, roles: IS_AUTHENTICATED_ANONYMOUSLY } # Allow anonymous access to registration
-        - { path: ^/intranet/register, roles: IS_AUTHENTICATED_ANONYMOUSLY } # Allow anonymous access to admin creation
-        - { path: ^/intranet/login, roles: IS_AUTHENTICATED_ANONYMOUSLY } # Allow anonymous access to intranet login
-        - { path: ^/intranet/, roles: IS_AUTHENTICATED_FULLY } # Ensure all other intranet routes require authentication
+        - { path: ^/api/register, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/api/parametres, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/intranet/register, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/intranet/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/intranet/, roles: ROLE_ADMIN }
+        - { path: ^/api, roles: ROLE_USER }

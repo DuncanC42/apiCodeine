@@ -14,7 +14,6 @@ use Symfony\Component\Serializer\SerializerInterface;
 use OpenApi\Annotations as OA;
 
 /**
- * @Route("intranet/parametres")
  * @OA\Tag(name="Paramètres")
  */
 class ParametresController extends AbstractController
@@ -34,9 +33,9 @@ class ParametresController extends AbstractController
     }
 
     /**
-     * @Route("", methods={"GET"})
+     * @Route("api/parametres", methods={"GET"})
      * @OA\Get(
-     *     path="/intranet/parametres",
+     *     path="/api/parametres",
      *     summary="Récupérer les paramètres",
      *     description="Retourne les paramètres du système (dates de début et de clôture)",
      *     operationId="getParametres",
@@ -80,7 +79,7 @@ class ParametresController extends AbstractController
     }
 
     /**
-     * @Route("", methods={"POST"})
+     * @Route("intranet/parametres", methods={"POST"})
      * @OA\Post(
      *     path="/intranet/parametres",
      *     summary="Créer ou mettre à jour les paramètres",
