@@ -28,3 +28,20 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    # JWT event listeners
+    app.event.jwt_created_listener:
+        class: App\EventListener\JWTCreatedListener
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_created, method: onJWTCreated }
+            
+    app.event.jwt_decoded_listener:
+        class: App\EventListener\JWTDecodedListener
+        arguments: ['@request_stack']
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_decoded, method: onJWTDecoded }
+            
+    # Route access listener
+    App\Security\RouteAccessDeniedListener:
+        tags:
+            - { name: kernel.event_subscriber }
