@@ -11,7 +11,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
+use OpenApi\Annotations as OA;
 
+/**
+ * @OA\Tag(name="Completion")
+ */
 class StatusJeuxController extends AbstractController
 {
     private $entityManager;
@@ -25,6 +29,37 @@ class StatusJeuxController extends AbstractController
 
     /**
      * @Route("/api/status/jeux", name="api_status_jeux", methods={"GET"})
+     * @OA\Get(
+     *     path="/api/status/jeux",
+     *     summary="Récupérer le statut des jeux",
+     *     description="Retourne l'état de complétion des jeux pour le joueur authentifié",
+     *     operationId="getGameStatus",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Statut des jeux récupéré avec succès",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             example={
+     *                 "jeux1": true,
+     *                 "jeux2": false,
+     *                 "jeux3": true,
+     *                 "jeux4": false
+     *             },
+     *             @OA\AdditionalProperties(
+     *                 type="boolean",
+     *                 description="Indique si le jeu a été complété (true) ou non (false)"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Utilisateur non authentifié",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Utilisateur non authentifié")
+     *         )
+     *     ),
+     *     security={{"Bearer": {}}}
+     * )
      */
     public function getGameStatus(): JsonResponse
     {

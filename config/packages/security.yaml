@@ -45,10 +45,6 @@ security:
             pattern: ^/api/register
             security: false
 
-        api_register:
-            pattern: ^/api/register
-            security: false
-
         api:
             pattern:   ^/api
             stateless: true
