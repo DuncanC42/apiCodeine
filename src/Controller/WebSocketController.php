@@ -12,6 +12,7 @@ class WebSocketController extends AbstractController implements MessageComponent
 {
     private $clients;
     private $userCount = 0;
+    private $clientTypes = []; // clé : resourceId => 'admin' ou 'player'
 
     public function __construct()
     {
@@ -30,8 +31,6 @@ class WebSocketController extends AbstractController implements MessageComponent
     public function onOpen(ConnectionInterface $conn)
     {
         $this->clients->attach($conn);
-        $this->broadcastCount();
-
         echo "Nouvelle connexion! ({$conn->resourceId})\n";
     }
 
@@ -39,27 +38,49 @@ class WebSocketController extends AbstractController implements MessageComponent
     {
         $data = json_decode($msg, true);
 
-        if (!$data) {
+        if (!$data || !isset($data['action'])) {
             return;
         }
 
-        if ($data['action'] === 'userConnected') {
-            $this->userCount++;
+        switch ($data['action']) {
+            case 'userConnected':
+                $this->clientTypes[$from->resourceId] = 'player';
+                $this->userCount++;
+                $this->broadcastCount();
+                break;
+
+            case 'adminConnected':
+                $this->clientTypes[$from->resourceId] = 'admin';
+                // Ne pas incrémenter le compteur pour les admins
+                $this->broadcastCount(); // Envoi l'état actuel
+                break;
+
+            case 'userDisconnected':
+                if (isset($this->clientTypes[$from->resourceId]) &&
+                    $this->clientTypes[$from->resourceId] === 'player') {
+                    $this->decrementUserCount();
+                    $this->broadcastCount();
+                }
+                break;
         }
 
-        $this->broadcastCount();
-
-        echo "Action reçue: {$data['action']}, Nombre de joueurs: {$this->userCount}\n";
+        echo "Action: {$data['action']} | Joueurs: {$this->userCount}\n";
     }
-
-
 
     public function onClose(ConnectionInterface $conn)
     {
         $this->clients->detach($conn);
-        $this->userCount--;
 
-        $this->broadcastCount();
+        // Vérifie le type et décrémente si joueur
+        if (
+            isset($this->clientTypes[$conn->resourceId]) &&
+            $this->clientTypes[$conn->resourceId] === 'player'
+        ) {
+            $this->decrementUserCount();
+            $this->broadcastCount();
+        }
+
+        unset($this->clientTypes[$conn->resourceId]);
 
         echo "Connexion {$conn->resourceId} fermée\n";
     }
@@ -80,5 +101,13 @@ class WebSocketController extends AbstractController implements MessageComponent
         foreach ($this->clients as $client) {
             $client->send($message);
         }
+    }
+
+    /**
+     * décremente le nombre d'utilisateurs en faisant attention à ne pas descendre en dessous de 0
+     */
+    private function decrementUserCount(): void
+    {
+        $this->userCount = max(0, $this->userCount - 1);
     }
 }
