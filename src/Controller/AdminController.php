@@ -111,38 +111,7 @@ class AdminController extends AbstractController
         return new JsonResponse(['message' => 'Admin account created successfully'], 201);
     }
 
-    /**
-     * @Route("/intranet/login", name="admin_login", methods={"POST"})
-     * @OA\Post(
-     *     path="/intranet/login",
-     *     summary="Login to the intranet",
-     *     description="Authenticates an admin and returns a JWT token",
-     *     operationId="adminLogin",
-     *     @OA\RequestBody(
-     *         description="Admin credentials",
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="email", type="string", example="admin@example.com"),
-     *             @OA\Property(property="password", type="string", example="password123")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful authentication",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."),
-     *             @OA\Property(property="user_type", type="string", example="admin")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Authentication failed",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="error", type="string", example="Invalid credentials")
-     *         )
-     *     )
-     * )
-     */
+
     public function loginAdmin(JWTTokenManagerInterface $jwtManager)
     {
         // The user is already authenticated by the custom authenticator
