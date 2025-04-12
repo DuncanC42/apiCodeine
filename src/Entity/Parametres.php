@@ -32,6 +32,11 @@ class Parametres
         return $this->id;
     }
 
+    public function setId($id): void
+    {
+        $this->id = $id;
+    }
+
     public function getDateCloture(): ?\DateTimeInterface
     {
         return $this->date_cloture;

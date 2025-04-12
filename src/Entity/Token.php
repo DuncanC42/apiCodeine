@@ -37,6 +37,12 @@ class Token
         return $this->id;
     }
 
+    public function setId($id): void
+    {
+        $this->id = $id;
+    }
+
+
     public function getKey(): ?string
     {
         return $this->key;
